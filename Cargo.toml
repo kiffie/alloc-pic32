@@ -3,25 +3,26 @@ authors = [
     "The Cortex-M Team <cortex-m@teams.rust-embedded.org>",
     "Jonathan Pallant <github@thejpster.org.uk>",
     "Jorge Aparicio <jorge@japaric.io>",
+    "Kiffie van Haash"
 ]
 
-description = "A heap allocator for Cortex-M processors"
-repository = "https://github.com/rust-embedded/alloc-cortex-m"
-documentation = "https://docs.rs/alloc-cortex-m"
+description = "A heap allocator for PIC32 controllers"
+repository = "https://github.com/kiffie/alloc-pic32"
 readme = "README.md"
 
 keywords = [
     "allocator",
-    "arm",
-    "cortex-m",
+    "mips",
+    "PIC32",
 ]
 license = "MIT OR Apache-2.0"
-name = "alloc-cortex-m"
+name = "alloc-pic32"
 version = "0.3.5"
 
 [dependencies]
-cortex-m = "0.1.5"
+#mips_rt = { git = "https://github.com/kiffie/mcu-rs.git" }
+mips_rt = { path = "../mcu-rs/mips-rt" }
 
 [dependencies.linked_list_allocator]
 default-features = false
-version = "0.6.0"
+version = "0.6.4"

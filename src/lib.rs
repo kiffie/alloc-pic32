@@ -1,29 +1,26 @@
-//! A heap allocator for Cortex-M processors
+//! A heap allocator for PIC32 controllers
 //!
 //! # Example
 //!
 //! ```
-//! #![feature(alloc)]
 //! #![feature(global_allocator)]
 //! #![feature(lang_items)]
 //!
 //! // Plug in the allocator crate
 //! extern crate alloc;
-//! extern crate alloc_cortex_m;
-//! #[macro_use]
-//! extern crate cortex_m_rt as rt; // v0.5.x
+//! use mips_rt;
 //!
 //! use alloc::Vec;
-//! use alloc_cortex_m::CortexMHeap;
+//! use alloc_pic32::Pic32Heap;
 //!
 //! #[global_allocator]
-//! static ALLOCATOR: CortexMHeap = CortexMHeap::empty();
+//! static ALLOCATOR: Pic32Heap = Pic32Heap::empty();
 //!
 //! entry!(main);
 //!
 //! fn main() -> ! {
 //!     // Initialize the allocator BEFORE you use it
-//!     let start = rt::heap_start() as usize;
+//!     let start = mips_rt::heap_start() as usize;
 //!     let size = 1024; // in bytes
 //!     unsafe { ALLOCATOR.init(start, size) }
 //!
@@ -45,34 +42,47 @@
 //! // omitted: exception handlers
 //! ```
 
-#![feature(alloc)]
 #![feature(allocator_api)]
 #![feature(const_fn)]
 #![no_std]
 
 extern crate alloc;
-extern crate cortex_m;
+extern crate mips_rt;
 extern crate linked_list_allocator;
 
 use core::alloc::{GlobalAlloc, Layout};
+use core::cell::UnsafeCell;
 use core::ptr::NonNull;
 
-use cortex_m::interrupt::Mutex;
+use mips_rt::interrupt;
 use linked_list_allocator::Heap;
 
-pub struct CortexMHeap {
-    heap: Mutex<Heap>,
+pub struct Pic32Heap {
+    heap: UnsafeCell<Heap>,
 }
 
-impl CortexMHeap {
+impl Pic32Heap {
     /// Crate a new UNINITIALIZED heap allocator
     ///
     /// You must initialize this heap using the
-    /// [`init`](struct.CortexMHeap.html#method.init) method before using the allocator.
-    pub const fn empty() -> CortexMHeap {
-        CortexMHeap {
-            heap: Mutex::new(Heap::empty()),
+    /// [`init`](struct.Pic32Heap.html#method.init) method before using the allocator.
+    pub const fn empty() -> Pic32Heap {
+        Pic32Heap {
+            heap: UnsafeCell::new(Heap::empty()),
         }
+    }
+
+    /// Wrapper for working with the heap
+    ///
+    /// This wrapper disables the Interrupts and provides a mutable reference to
+    /// the inner Heap structure.
+    fn with_heap<F,R>(&self, f: F) -> R
+    where
+        F: FnOnce(&mut Heap) -> R,
+    {
+        interrupt::free(|_| {
+            unsafe { f(&mut *self.heap.get()) }
+        })
     }
 
     /// Initializes the heap
@@ -99,20 +109,26 @@ impl CortexMHeap {
     /// - This function must be called exactly ONCE.
     /// - `size > 0`
     pub unsafe fn init(&self, start_addr: usize, size: usize) {
-        self.heap.lock(|heap| heap.init(start_addr, size));
+        self.with_heap(|heap|{
+            heap.init(start_addr, size);
+        });
     }
 }
 
-unsafe impl GlobalAlloc for CortexMHeap {
+unsafe impl GlobalAlloc for Pic32Heap {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        self.heap
-            .lock(|heap| heap.allocate_first_fit(layout))
-            .ok()
-            .map_or(0 as *mut u8, |allocation| allocation.as_ptr())
+        self.with_heap(|heap|{
+            heap.allocate_first_fit(layout)
+                .ok()
+                .map_or(0 as *mut u8, |allocation| allocation.as_ptr())
+        })
     }
 
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
-        self.heap
-            .lock(|heap| heap.deallocate(NonNull::new_unchecked(ptr), layout));
+        self.with_heap(|heap|{
+            heap.deallocate(NonNull::new_unchecked(ptr), layout);
+        });
     }
 }
+
+unsafe impl Sync for Pic32Heap {}
