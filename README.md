@@ -1,4 +1,4 @@
-# `alloc-cortex-m`
+# `alloc-pic32`
 
 A heap allocator for PIC32 microcontrollers
 
