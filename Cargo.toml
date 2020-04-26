@@ -20,9 +20,8 @@ name = "alloc-pic32"
 version = "0.3.5"
 
 [dependencies]
-#mips_rt = { git = "https://github.com/kiffie/mcu-rs.git" }
-mips_rt = { path = "../mcu-rs/mips-rt" }
+mips_rt = { git = "https://github.com/kiffie/mcu-rs.git" }
 
 [dependencies.linked_list_allocator]
 default-features = false
-version = "0.6.4"
+version = "0.8.1"
