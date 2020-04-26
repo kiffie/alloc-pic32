@@ -3,7 +3,7 @@ authors = [
     "The Cortex-M Team <cortex-m@teams.rust-embedded.org>",
     "Jonathan Pallant <github@thejpster.org.uk>",
     "Jorge Aparicio <jorge@japaric.io>",
-    "Kiffie van Haash"
+    "Stephan <kiffie@mailbox.org>"
 ]
 
 description = "A heap allocator for PIC32 controllers"
