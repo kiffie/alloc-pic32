@@ -17,10 +17,10 @@ keywords = [
 ]
 license = "MIT OR Apache-2.0"
 name = "alloc-pic32"
-version = "0.3.5"
+version = "0.4.0"
 
 [dependencies]
-mips_rt = { git = "https://github.com/kiffie/pic32-rs.git" }
+mips-mcu = "0.1.0"
 
 [dependencies.linked_list_allocator]
 default-features = false

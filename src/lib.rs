@@ -47,14 +47,14 @@
 #![no_std]
 
 extern crate alloc;
-extern crate mips_rt;
+extern crate mips_mcu;
 extern crate linked_list_allocator;
 
 use core::alloc::{GlobalAlloc, Layout};
 use core::cell::UnsafeCell;
 use core::ptr::NonNull;
 
-use mips_rt::interrupt;
+use mips_mcu::interrupt;
 use linked_list_allocator::Heap;
 
 pub struct Pic32Heap {
